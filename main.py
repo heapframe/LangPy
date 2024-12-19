@@ -1,4 +1,4 @@
-import requests, time, os, datetime, random, sys
+import requests, time, os, datetime, random, sys, json
 from tqdm import tqdm
 from prettytable import PrettyTable
 
@@ -237,6 +237,41 @@ if not hwIdSelected in HwDataList:
             Success = True
 
 
+def getSentenceTranslations(token, game_uid, catalogUid):
+    headers = {
+        'Accept': 'text/plain, */*; q=0.01',
+        'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Origin': 'https://www.languagenut.com',
+        'Referer': 'https://www.languagenut.com/',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-site',
+        'Sec-GPC': '1',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        'sec-ch-ua': '"Brave";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Linux"',
+    }
+
+    data = {
+        'gameUid': game_uid,
+        'catalogUid': catalogUid,
+        'toLanguage': 'de',
+        'fromLanguage': 'en-GB',
+        'languagenutTimeMarker': str(unixMillis()),
+        'lastLanguagenutTimeMarker': str(unixMillis() - 3000),
+        'apiVersion': '9',
+        'token': token,
+    }
+
+    response = requests.post(
+        'https://api.languagenut.com/sentenceTranslationController/getSentenceTranslations',
+        headers=headers,
+        data=data,
+    )
+
 def getVocabTranslations(token, catalogUid, homeworkUid):
     headers = {
         'Accept': 'text/plain, */*; q=0.01',
@@ -280,7 +315,7 @@ def getVocabTranslations(token, catalogUid, homeworkUid):
     return response
 
 
-def addGameScore(token, moduleUid, gameType, homeworkUid, gameUid, isTest, correctVocabs, isSentence, featureUid,
+def addGameScore(token, moduleUid, gameType, homeworkUid, gameUid, isTest, correctVocabs, incorrectVocabs, isSentence, featureUid,
                  isALevel, isVerb, isGrammar, isExam, timeStamp, vocabNumber, correctStudentAns, languagenutTimeMarker,
                  lastLanguagenutTimeMarker):
     headers = {
@@ -304,12 +339,14 @@ def addGameScore(token, moduleUid, gameType, homeworkUid, gameUid, isTest, corre
         'cacheBreaker': str(unixMillis()),
     }
 
-    # print(moduleUid, gameType, homeworkUid, gameUid, isTest, correctVocabs, isSentence, featureUid, isALevel, isVerb, isGrammar, isExam, timeStamp, vocabNumber, correctStudentAns, languagenutTimeMarker, lastLanguagenutTimeMarker)
+    #print(moduleUid, gameType, homeworkUid, gameUid, isTest, correctVocabs, incorrectVocabs, isSentence, featureUid,
+    #        isALevel, isVerb, isGrammar, isExam, timeStamp, vocabNumber, correctStudentAns, languagenutTimeMarker,
+    #        lastLanguagenutTimeMarker)
 
     data = "moduleUid=" + moduleUid + "&gameUid=" + gameUid + "&gameType=" + gameType + "&isTest=" + isTest + "&toietf=de&fromietf=en-GB&score=2000&correctVocabs=" \
-           + correctVocabs + "&incorrectVocabs=&homeworkUid=" + homeworkUid + "&featureUid=" + featureUid + "&isSentence=" + isSentence + "&isALevel=" + isALevel \
-           + "&isVerb=" + isVerb + "&grammarCatalogUid=" + moduleUid + "&isGrammar=" + isGrammar + "&isExam=" + isExam + "&timeStamp=" + timeStamp \
-           + "&vocabNumber=" + vocabNumber + "&rel_module_uid=" + moduleUid + "&dontStoreStats=true&correctStudentAns=&incorrectStudentAns=&product=secondary\
+        + correctVocabs + "&incorrectVocabs=" + incorrectVocabs + "&homeworkUid=" + homeworkUid + "&featureUid=" + featureUid + "&isSentence=" + isSentence \
+        + "&isALevel=" + isALevel + "&isVerb=" + isVerb + "&grammarCatalogUid=" + moduleUid + "&isGrammar=" + isGrammar + "&isExam=" + isExam + "&timeStamp=" \
+        + timeStamp + "&vocabNumber=" + vocabNumber + "&rel_module_uid=" + moduleUid + "&dontStoreStats=true&correctStudentAns=&incorrectStudentAns=&product=secondary\
       &languagenutTimeMarker=" + languagenutTimeMarker + "&lastLanguagenutTimeMarker=" + lastLanguagenutTimeMarker + "&apiVersion=9&token=" + token
 
     response = requests.post('https://api.languagenut.com/gameDataController/addGameScore', params=params,
@@ -325,6 +362,10 @@ print("Completing homework...")
 print("PSA: Grammar bot does not work")
 random.random()
 awwMan = 0
+#f3 = open(str(time.time()) + "_taskdata", "w")
+#json.dump(HwDataList[hwIdSelected], f3, indent = 6)
+#f3.close()
+#input()
 for task in tqdm(HwDataList[hwIdSelected], "Botting"):
     translation = task.get("translation")
     moduleUid = task.get("rel_module_uid")
@@ -335,11 +376,18 @@ for task in tqdm(HwDataList[hwIdSelected], "Botting"):
     gameType = task.get("base")[5]
     # vocabNumber = task.get("no_correct")
     homeworkUid = hwIdSelected
-
+    getWrong = random.randrange(0,2)
+    done = 0
     translationData = getVocabTranslations(token, catalogUid, homeworkUid)
+    #f2 = open(str(time.time()) + "_translation", "w")
+    #json.dump(translationData, f2, indent = 6)
+    #f2.close()
     correctVocabs = ""
+    incorrectVocabs = ""
     correctStudentAns = ""
+    incorrectStudentAns = ""
     try:
+
         for translation in translationData.get("vocabTranslations"):
             correctVocabs = correctVocabs + "%2C" + translation.get("uid")
 
@@ -347,14 +395,18 @@ for task in tqdm(HwDataList[hwIdSelected], "Botting"):
             correctStudentAns = correctStudentAns + "%2C" + translation.get("originalWord")
 
         correctVocabs = correctVocabs[3:]
-        correctStudentAns = correctStudentAns[3:].replace(" ", "+").replace(",",
-                                                                            "")
-        addScore = addGameScore(token, moduleUid, gameType, homeworkUid, gameUid, "true", correctVocabs, "false",
-                                featureUid, "false", "false", "false", "false", str(random.randrange(100000, 250000)) , "10", correctStudentAns,
+        correctStudentAns = correctStudentAns[3:].replace(" ", "+").replace(",","")
+
+        addScore = addGameScore(token, moduleUid, gameType, homeworkUid, gameUid, "true", correctVocabs, incorrectVocabs, "false", # order is meant to be correct, incorrect
+                                featureUid, "false", "false", "false", "false", str(random.randrange(100000, 500000)) , "10", correctStudentAns,
                                 str(unixMillis()), str(int(unixMillis() - 3000)))
         if addScore.get("SUCCESS"):
             work += 1
         taskC += 1
+        #TODO: remove temp code
+        #f = open(str(time.time()), "w")
+        #json.dump(addScore, f, indent = 6)
+        #f.close()
     except TypeError:
         awwMan = awwMan + 1
         continue
