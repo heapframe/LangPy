@@ -1,4 +1,4 @@
-import requests, time, os, datetime, random, sys, json
+import requests, time, os, datetime, random, sys, json, languagenut
 from tqdm import tqdm
 from prettytable import PrettyTable
 
@@ -398,7 +398,7 @@ for task in tqdm(HwDataList[hwIdSelected], "Botting"):
         correctStudentAns = correctStudentAns[3:].replace(" ", "+").replace(",","")
 
         addScore = addGameScore(token, moduleUid, gameType, homeworkUid, gameUid, "true", correctVocabs, incorrectVocabs, "false", # order is meant to be correct, incorrect
-                                featureUid, "false", "false", "false", "false", str(random.randrange(100000, 500000)) , "10", correctStudentAns,
+                                featureUid, "false", "false", "false", "false", str(random.randrange(180000, 360000)) , "10", correctStudentAns,
                                 str(unixMillis()), str(int(unixMillis() - 3000)))
         if addScore.get("SUCCESS"):
             work += 1
