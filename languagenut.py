@@ -1,12 +1,14 @@
-import requests, datetime, random
+import requests, datetime, random, time
+
+def unixMillis():
+        return datetime.datetime.now().timestamp() * 1000
+
+token = ""
 
 class LanguageNut:
-
-    def unixMillis(self):
-        return datetime.datetime.now().timestamp() * 1000
     
     class loginController:
-        def attemptlogin(self, username, password):
+        def attemptlogin(username, password):
             headers = {
                 'Accept': 'text/plain, */*; q=0.01',
                 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
@@ -41,9 +43,8 @@ class LanguageNut:
                                  data=data).json()
 
     class assignmentController: 
-        def getViewableAll(self, token):
-            def getHwData(token):
-                headers = {
+        def getViewableAll(token):
+            headers = {
                 'Accept': 'text/plain, */*; q=0.01',
                 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
                 'Connection': 'keep-alive',
@@ -84,7 +85,7 @@ class LanguageNut:
             return response
 
     class recentActivity:
-        def getAllStudentActivity(self, token, id):
+        def getAllStudentActivity(token, id):
             headers = {
                 'Accept': 'text/plain, */*; q=0.01',
                 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
@@ -103,18 +104,18 @@ class LanguageNut:
             }
 
             params = {
-                'cacheBreaker': str(unixMillis()),
+                'cacheBreaker': str(int(time.time())),
             }
 
             data = {
-                'studentID': id,
+                'studentID': str(id),
                 'languageID': 'all',
-                'to': str(unixMillis()),
+                'to': str(int(time.time())),
                 'from': '0',
                 'seperateHomework': 'false',
                 'limiter': '500',
-                'languagenutTimeMarker': str(unixMillis()),
-                'lastLanguagenutTimeMarker': str(unixMillis()),
+                'languagenutTimeMarker': str(int(time.time())),
+                'lastLanguagenutTimeMarker': str(int(time.time())),
                 'apiVersion': '9',
                 'token': token,
             }
@@ -129,7 +130,7 @@ class LanguageNut:
             return response
 
     class sentenceTranslationController:
-        def getSentenceTranslations(self, game_uid, catalogUid):
+        def getSentenceTranslations(game_uid, catalogUid):
             headers = {
                 'Accept': 'text/plain, */*; q=0.01',
                 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
@@ -165,7 +166,7 @@ class LanguageNut:
             )
     
     class vocabTranslationController:
-        def getVocabTranslations(self, token, catalogUid, homeworkUid):
+        def getVocabTranslations(token, catalogUid, homeworkUid):
             headers = {
                 'Accept': 'text/plain, */*; q=0.01',
                 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
@@ -208,7 +209,7 @@ class LanguageNut:
             return response
 
     class gameDataController:
-        def addGameScore(self, token, moduleUid, gameType, homeworkUid, gameUid, isTest, correctVocabs, incorrectVocabs, isSentence, featureUid,
+        def addGameScore(token, moduleUid, gameType, homeworkUid, gameUid, isTest, correctVocabs, incorrectVocabs, isSentence, featureUid,
                  isALevel, isVerb, isGrammar, isExam, timeStamp, vocabNumber, correctStudentAns, languagenutTimeMarker,
                  lastLanguagenutTimeMarker):
             headers = {

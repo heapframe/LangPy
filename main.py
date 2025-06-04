@@ -11,8 +11,7 @@ print(r"""
               """)
 
 
-def unixMillis():
-    return datetime.datetime.now().timestamp() * 1000
+languagenut = languagenut.LanguageNut()
 
 
 def Login(AttemptFileLogin):
@@ -61,38 +60,8 @@ def Login(AttemptFileLogin):
     else:
         usernameIn = input("Username: ")
         password = input("Password: ")
-    headers = {
-        'Accept': 'text/plain, */*; q=0.01',
-        'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'Origin': 'https://www.languagenut.com',
-        'Referer': 'https://www.languagenut.com/',
-        'Sec-Fetch-Dest': 'empty',
-        'Sec-Fetch-Mode': 'cors',
-        'Sec-Fetch-Site': 'same-site',
-        'Sec-GPC': '1',
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        'sec-ch-ua': '"Not A(Brand";v="99", "Brave";v="121", "Chromium";v="121"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Linux"',
-    }
-
-    params = {
-        'cacheBreaker': str(unixMillis()),
-    }
-
-    data = {
-        'username': usernameIn,
-        'pass': password,
-        'loginType': 'browserLogin',
-        'languagenutTimeMarker': str(unixMillis()),
-        'lastLanguagenutTimeMarker': str(unixMillis()),
-        'apiVersion': '9',
-    }
-
-    return requests.post('https://api.languagenut.com/loginController/attemptlogin', params=params, headers=headers,
-                         data=data).json()
+    
+    return languagenut.loginController.attemptlogin(usernameIn, password)
 
 
 login = Login(True)
@@ -110,97 +79,7 @@ if not login.get("isLoggedIn"):
 print("Hello", login.get("personName"))
 token = login.get("newToken")
 
-
-def getHwData(token):
-    headers = {
-        'Accept': 'text/plain, */*; q=0.01',
-        'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'Origin': 'https://www.languagenut.com',
-        'Referer': 'https://www.languagenut.com/',
-        'Sec-Fetch-Dest': 'empty',
-        'Sec-Fetch-Mode': 'cors',
-        'Sec-Fetch-Site': 'same-site',
-        'Sec-GPC': '1',
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        'sec-ch-ua': '"Not A(Brand";v="99", "Brave";v="121", "Chromium";v="121"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Linux"',
-    }
-
-    params = {
-        'cacheBreaker': str(unixMillis()),
-    }
-
-    data = {
-        'newPageTrigger': 'true',
-        'newPage': 'Homework',
-        'languagenutTimeMarker': str(unixMillis()),
-        'lastLanguagenutTimeMarker': str(unixMillis() - 3000),
-        'languagenutStatistics[]': 'curriculumHomework',
-        'apiVersion': '9',
-        'token': token,
-    }
-
-    response = requests.post(
-        'https://api.languagenut.com/assignmentController/getViewableAll',
-        params=params,
-        headers=headers,
-        data=data,
-    ).json()
-    token = response.get("newToken")
-    return response
-
-
-def getTeacherData(token, id):
-    headers = {
-        'Accept': 'text/plain, */*; q=0.01',
-        'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'Origin': 'https://www.languagenut.com',
-        'Referer': 'https://www.languagenut.com/',
-        'Sec-Fetch-Dest': 'empty',
-        'Sec-Fetch-Mode': 'cors',
-        'Sec-Fetch-Site': 'same-site',
-        'Sec-GPC': '1',
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        'sec-ch-ua': '"Not A(Brand";v="99", "Brave";v="121", "Chromium";v="121"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Linux"',
-    }
-
-    params = {
-        'cacheBreaker': str(int(time.time())),
-    }
-
-    data = {
-        'studentID': id,
-        'languageID': 'all',
-        'to': str(int(time.time())),
-        'from': '0',
-        'seperateHomework': 'false',
-        'limiter': '500',
-        'languagenutTimeMarker': str(int(time.time())),
-        'lastLanguagenutTimeMarker': str(int(time.time())),
-        'apiVersion': '9',
-        'token': token,
-    }
-
-    response = requests.post(
-        'https://api.languagenut.com/recentActivity/getAllStudentActivity',
-        params=params,
-        headers=headers,
-        data=data,
-    ).json()
-    token = response.get("newToken")
-    return response
-
-
-HwData = getHwData(token)
-
-# print(HwData)
+HwData = languagenut.assignmentController.getViewableAll(token)
 
 print("This is all your set homework")
 
@@ -212,7 +91,7 @@ prettyHwTable = PrettyTable(["ID", "Name", "Teacher", "Set Date", "Due Date", "C
 for hw in HwData.get("homework"):
     HwDataList[hw.get("id")] = hw.get("tasks")
     idToName[hw.get("id")] = hw.get("createdBy")
-    data = getTeacherData(token, idToName[hw.get("id")])
+    data = languagenut.recentActivity.getAllStudentActivity(token, idToName[hw.get("id")])
     names = [activity['name'] for activity in data['activity']]
     # print("(", hw.get("id"), ")", " ", hw.get("name"), "| ", names[0], " | Due: ", hw.get("due"))
     completed = 0
@@ -236,83 +115,6 @@ if not hwIdSelected in HwDataList:
         if hwIdSelected in HwDataList:
             Success = True
 
-
-def getSentenceTranslations(token, game_uid, catalogUid):
-    headers = {
-        'Accept': 'text/plain, */*; q=0.01',
-        'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'Origin': 'https://www.languagenut.com',
-        'Referer': 'https://www.languagenut.com/',
-        'Sec-Fetch-Dest': 'empty',
-        'Sec-Fetch-Mode': 'cors',
-        'Sec-Fetch-Site': 'same-site',
-        'Sec-GPC': '1',
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-        'sec-ch-ua': '"Brave";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Linux"',
-    }
-
-    data = {
-        'gameUid': game_uid,
-        'catalogUid': catalogUid,
-        'toLanguage': 'de',
-        'fromLanguage': 'en-GB',
-        'languagenutTimeMarker': str(unixMillis()),
-        'lastLanguagenutTimeMarker': str(unixMillis() - 3000),
-        'apiVersion': '9',
-        'token': token,
-    }
-
-    response = requests.post(
-        'https://api.languagenut.com/sentenceTranslationController/getSentenceTranslations',
-        headers=headers,
-        data=data,
-    )
-
-def getVocabTranslations(token, catalogUid, homeworkUid):
-    headers = {
-        'Accept': 'text/plain, */*; q=0.01',
-        'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'Origin': 'https://www.languagenut.com',
-        'Referer': 'https://www.languagenut.com/',
-        'Sec-Fetch-Dest': 'empty',
-        'Sec-Fetch-Mode': 'cors',
-        'Sec-Fetch-Site': 'same-site',
-        'Sec-GPC': '1',
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        'sec-ch-ua': '"Not A(Brand";v="99", "Brave";v="121", "Chromium";v="121"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Linux"',
-    }
-
-    params = {
-        'cacheBreaker': str(unixMillis()),
-    }
-
-    data = {
-        'catalogUid[]': catalogUid,
-        'toLanguage': 'de',
-        'fromLanguage': 'en-GB',
-        'homeworkUid': homeworkUid,
-        'languagenutTimeMarker': str(unixMillis()),
-        'lastLanguagenutTimeMarker': str(unixMillis() - 3000),
-        'apiVersion': '9',
-        'token': token,
-    }
-
-    response = requests.post(
-        'https://api.languagenut.com/vocabTranslationController/getVocabTranslations',
-        params=params,
-        headers=headers,
-        data=data,
-    ).json()
-    token = response.get("newToken")
-    return response
 
 
 def addGameScore(token, moduleUid, gameType, homeworkUid, gameUid, isTest, correctVocabs, incorrectVocabs, isSentence, featureUid,
@@ -378,7 +180,7 @@ for task in tqdm(HwDataList[hwIdSelected], "Botting"):
     homeworkUid = hwIdSelected
     getWrong = random.randrange(0,2)
     done = 0
-    translationData = getVocabTranslations(token, catalogUid, homeworkUid)
+    translationData = languagenut.vocabTranslationController.getVocabTranslations(token, catalogUid, homeworkUid) #getVocabTranslations(token, catalogUid, homeworkUid)
     #f2 = open(str(time.time()) + "_translation", "w")
     #json.dump(translationData, f2, indent = 6)
     #f2.close()
@@ -397,7 +199,7 @@ for task in tqdm(HwDataList[hwIdSelected], "Botting"):
         correctVocabs = correctVocabs[3:]
         correctStudentAns = correctStudentAns[3:].replace(" ", "+").replace(",","")
 
-        addScore = addGameScore(token, moduleUid, gameType, homeworkUid, gameUid, "true", correctVocabs, incorrectVocabs, "false", # order is meant to be correct, incorrect
+        addScore = languagenut.gameDataController.addGameScore(token, moduleUid, gameType, homeworkUid, gameUid, "true", correctVocabs, incorrectVocabs, "false", # order is meant to be correct, incorrect
                                 featureUid, "false", "false", "false", "false", str(random.randrange(180000, 360000)) , "10", correctStudentAns,
                                 str(unixMillis()), str(int(unixMillis() - 3000)))
         if addScore.get("SUCCESS"):
