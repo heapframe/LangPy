@@ -6,6 +6,9 @@ def unixMillis():
 token = ""
 
 class LanguageNut:
+
+    def unixMillis(self):
+        return datetime.datetime.now().timestamp() * 1000
     
     class loginController:
         def attemptlogin(username, password):
@@ -42,7 +45,7 @@ class LanguageNut:
             return requests.post('https://api.languagenut.com/loginController/attemptlogin', params=params, headers=headers,
                                  data=data).json()
 
-    class assignmentController: 
+    class assignmentController:
         def getViewableAll(token):
             headers = {
                 'Accept': 'text/plain, */*; q=0.01',
@@ -81,11 +84,12 @@ class LanguageNut:
                 headers=headers,
                 data=data,
             ).json()
-            token = response.get("newToken")
+            global internalToken
+            internalToken = response.get("newToken")
             return response
 
     class recentActivity:
-        def getAllStudentActivity(token, id):
+        def getAllStudentActivity(token, id): #deprecated
             headers = {
                 'Accept': 'text/plain, */*; q=0.01',
                 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
@@ -126,11 +130,12 @@ class LanguageNut:
                 headers=headers,
                 data=data,
             ).json()
-            token = response.get("newToken")
+            global internalToken
+            internalToken = response.get("newToken")
             return response
 
     class sentenceTranslationController:
-        def getSentenceTranslations(game_uid, catalogUid):
+        def getSentenceTranslations(token, game_uid, catalogUid):
             headers = {
                 'Accept': 'text/plain, */*; q=0.01',
                 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
@@ -163,7 +168,10 @@ class LanguageNut:
                 'https://api.languagenut.com/sentenceTranslationController/getSentenceTranslations',
                 headers=headers,
                 data=data,
-            )
+            ).json()
+            global internalToken
+            internalToken = response.get("newToken")
+            return response
     
     class vocabTranslationController:
         def getVocabTranslations(token, catalogUid, homeworkUid):
@@ -205,8 +213,48 @@ class LanguageNut:
                 headers=headers,
                 data=data,
             ).json()
-            token = response.get("newToken")
+            global internalToken
+            internalToken = response.get("newToken")
             return response
+
+    class examTranslationController:
+        def getExamDataTranslations(token, examUid, toIetf, fromIetf, homeworkUid, gameUid):
+            headers = {
+                'Accept': 'text/plain, */*; q=0.01',
+                'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
+                'Connection': 'keep-alive',
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'Origin': 'https://www.languagenut.com',
+                'Referer': 'https://www.languagenut.com/',
+                'Sec-Fetch-Dest': 'empty',
+                'Sec-Fetch-Mode': 'cors',
+                'Sec-Fetch-Site': 'same-site',
+                'Sec-GPC': '1',
+                'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+                'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+                'sec-ch-ua-mobile': '?0',
+                'sec-ch-ua-platform': '"Linux"',
+            }
+
+            data = {
+                'examUid': str(examUid),
+                'toIetf': toIetf,
+                'fromIetf': fromIetf,
+                'homeworkUid': homeworkUid,
+                'gameUid': gameUid,
+                'languagenutTimeMarker': str(unixMillis()),
+                'lastLanguagenutTimeMarker': str(unixMillis() - 3000),
+                'apiVersion': '9',
+                'token': token,
+            }
+
+            response = requests.post(
+                'https://api.languagenut.com/examTranslationController/getExamDataTranslations',
+                headers=headers,
+                data=data,
+            )
+
+            return response.json()
 
     class gameDataController:
         def addGameScore(token, moduleUid, gameType, homeworkUid, gameUid, isTest, correctVocabs, incorrectVocabs, isSentence, featureUid,
@@ -245,6 +293,7 @@ class LanguageNut:
 
             response = requests.post('https://api.languagenut.com/gameDataController/addGameScore', params=params,
                                      headers=headers, data=data).json()
-            token = response.get("newToken")
+            global internalToken
+            internalToken = response.get("newToken")
             return response
 
