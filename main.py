@@ -86,13 +86,14 @@ print("This is all your set homework")
 HwDataList = {}
 idToName = {}
 
-prettyHwTable = PrettyTable(["ID", "Name", "Teacher", "Set Date", "Due Date", "Completed Tasks"])
+prettyHwTable = PrettyTable(["ID", "Name", "Due Date", "Completed Tasks"])
 
 for hw in HwData.get("homework"):
     HwDataList[hw.get("id")] = hw.get("tasks")
     idToName[hw.get("id")] = hw.get("createdBy")
-    data = languagenut.recentActivity.getAllStudentActivity(token, idToName[hw.get("id")])
-    names = [activity['name'] for activity in data['activity']]
+    #data = languagenut.recentActivity.getAllStudentActivity(token, idToName[hw.get("id")])
+    #names = [activity['name'] for activity in data['activity']]
+
     # print("(", hw.get("id"), ")", " ", hw.get("name"), "| ", names[0], " | Due: ", hw.get("due"))
     completed = 0
     total = 0
@@ -101,7 +102,7 @@ for hw in HwData.get("homework"):
             completed += 1
         total += 1
     prettyHwTable.add_row(
-        [hw.get("id"), hw.get("name"), names[0], hw.get("set"), hw.get("due"), f"{completed}/{total}"])
+        [hw.get("id"), hw.get("name"), hw.get("due"), f"{completed}/{total}"])
 
 print(prettyHwTable)
 
@@ -128,50 +129,60 @@ awwMan = 0
 #f3.close()
 #input()
 for task in tqdm(HwDataList[hwIdSelected], "Botting"):
-    translation = task.get("translation")
-    moduleUid = task.get("rel_module_uid")
-    moduleType = task.get("type")
+    translationType = task.get("base")[4]
     gameUid = task.get("game_uid")
     catalogUid = task.get("rel_module_uid")
-    featureUid = task.get("feature_uid")
-    gameType = task.get("base")[5]
-    # vocabNumber = task.get("no_correct")
     homeworkUid = hwIdSelected
-    getWrong = random.randrange(0,2)
-    done = 0
-    translationData = languagenut.vocabTranslationController.getVocabTranslations(token, catalogUid, homeworkUid) #getVocabTranslations(token, catalogUid, homeworkUid)
-    #f2 = open(str(time.time()) + "_translation", "w")
-    #json.dump(translationData, f2, indent = 6)
-    #f2.close()
-    correctVocabs = ""
-    incorrectVocabs = ""
-    correctStudentAns = ""
-    incorrectStudentAns = ""
-    try:
 
-        for translation in translationData.get("vocabTranslations"):
-            correctVocabs = correctVocabs + "%2C" + translation.get("uid")
+    if translationType == "examData":
+        translationData = languagenut.examTranslationController.getExamDataTranslations(token, task.get("exam_question_uid"), task.get("learning_ietf"), "en", homeworkUid, gameUid)
+        print("ExamData")
+    else:
+        gameType = task.get("base")[5]
+        translation = task.get("translation")
+        moduleUid = task.get("rel_module_uid")
+        moduleType = task.get("type")
+        featureUid = task.get("feature_uid")
 
-        for translation in translationData.get("vocabTranslations"):
-            correctStudentAns = correctStudentAns + "%2C" + translation.get("originalWord")
+        if translationType == "grammar":
+            translationData = languagenut.sentenceTranslationController.getSentenceTranslations(token, gameUid, catalogUid)
+        else:
+            translationData = languagenut.vocabTranslationController.getVocabTranslations(token, catalogUid, homeworkUid)
+        correctVocabs = ""
+        incorrectVocabs = ""
+        correctStudentAns = ""
+        incorrectStudentAns = ""
+        addScore = {}
+        try:
+            for translation in translationData.get("vocabTranslations"):
+                correctVocabs = correctVocabs + "%2C" + translation.get("uid")
 
-        correctVocabs = correctVocabs[3:]
-        correctStudentAns = correctStudentAns[3:].replace(" ", "+").replace(",","")
+            for translation in translationData.get("vocabTranslations"):
+                correctStudentAns = correctStudentAns + "%2C" + translation.get("originalWord")
 
-        addScore = languagenut.gameDataController.addGameScore(token, moduleUid, gameType, homeworkUid, gameUid, "true", correctVocabs, incorrectVocabs, "false", # order is meant to be correct, incorrect
-                                featureUid, "false", "false", "false", "false", str(random.randrange(180000, 360000)) , "10", correctStudentAns,
-                                str(unixMillis()), str(int(unixMillis() - 3000)))
-        if addScore.get("SUCCESS"):
-            work += 1
-        taskC += 1
-        #TODO: remove temp code
-        #f = open(str(time.time()), "w")
-        #json.dump(addScore, f, indent = 6)
-        #f.close()
-    except TypeError:
-        awwMan = awwMan + 1
-        continue
-    time.sleep(5)
+            correctVocabs = correctVocabs[3:]
+            correctStudentAns = correctStudentAns[3:].replace(" ", "+").replace(",","")
+
+            addScore = languagenut.gameDataController.addGameScore(token, moduleUid, gameType, homeworkUid, gameUid, "true", correctVocabs, incorrectVocabs, "false", # order is meant to be correct, incorrect
+                                    featureUid, "false", "false", "false", "false", str(random.randrange(180000, 360000)) , "10", correctStudentAns,
+                                    str(languagenut.unixMillis()), str(int(languagenut.unixMillis() - 3000)))
+        
+            if addScore.get("SUCCESS"):
+                work += 1
+            taskC += 1
+            
+            #TODO: remove temp code
+            #f = open(str(time.time()), "w")
+            #json.dump(addScore, f, indent = 6)
+            #f.close()
+        except TypeError:
+            awwMan = awwMan + 1
+            if not os.path.isdir("fails"):
+                os.mkdir("fails")
+            with open(f"fails/Faildata_{str(languagenut.unixMillis())}.json", "w") as f:
+                json.dump(addScore, f)
+            continue
+        time.sleep(5)
 print(f"Completed {work}/{taskC} tasks")
 if awwMan != 0:
     print(f"Failed to complete {awwMan} tasks. Unsupported?")
