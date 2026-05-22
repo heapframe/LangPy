@@ -103,7 +103,8 @@ for hw in HwData.get("homework"):
         total += 1
     prettyHwTable.add_row(
         [hw.get("id"), hw.get("name"), hw.get("due"), f"{completed}/{total}"])
-
+    
+#prettyHwTable._rows = prettyHwTable._rows[-20:] #only show last 20
 print(prettyHwTable)
 
 hwIdSelected = input("Select by id: ")
@@ -121,7 +122,7 @@ work = 0
 taskC = 0
 
 print("Completing homework...")
-print("PSA: Grammar bot does not work")
+print("btw, grammar bot does not work, add support for it in languagenut.py")
 random.random()
 awwMan = 0
 #f3 = open(str(time.time()) + "_taskdata", "w")
