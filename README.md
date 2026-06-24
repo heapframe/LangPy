@@ -1,5 +1,6 @@
 # LangPy
-*Archived as I've finished secondary schooling and can no longer provide updates to this tool.*
+> [!NOTE]
+> **Archived:** I've finished secondary schooling and can no longer provide updates to this tool.
 
 A Python bot that automatically completes [Languagenut](https://www.languagenut.com) homework assignments. Spiritual successor to the original JavaScript-based LangPro (which has been privated), without the browser sandbox constraints like needing a CORS bypass extension.  
 Proudly made without AI other than for polishing this README  
